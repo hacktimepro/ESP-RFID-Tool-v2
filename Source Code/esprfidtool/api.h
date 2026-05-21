@@ -175,6 +175,16 @@ void apilistlogs(int prettify) {
 }
 
 void apilog(String logfile,int prettify) {
+  if (logfile.indexOf("..") != -1) {
+    server.send(400, "application/json", "{\"error\":\"Invalid path\"}");
+    return;
+  }
+  
+  if (logfile == "esprfidtool.json" || logfile == "/esprfidtool.json") {
+    server.send(403, "application/json", "{\"error\":\"Access denied\"}");
+    return;
+  }
+  
   File f = SPIFFS.open(String()+"/"+logfile, "r");
   if (!f) {
     server.send(200, "application/json", "Log file not found");
