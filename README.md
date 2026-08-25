@@ -37,7 +37,7 @@ Status page with useful diagnostic information:
 - Memory information  
   
 ### Hex Magic in Captured Data
-- The firmware automatically calculates the card UID in 32 bit, 34 bit, and 35 bit modes and displays it in the logfile  
+- The firmware automatically calculates the card UID in 32 bit, 34 bit, 35 bit and 56 bit modes and displays it in the logfile  
 - Significantly simplifies the creation of clone cards
 
   
@@ -95,7 +95,7 @@ The device can log credentials from access control systems or virtually any devi
 - Barcode readers  
 - Certain biometric systems  
 
-The primary target group includes 26 to 37 bit HID cards.
+The primary target group includes 26 to 56 bit HID cards.
 
 For known card types, both the binary data and the UID are displayed directly in the log. The log provides an instant one click replay function.
 
