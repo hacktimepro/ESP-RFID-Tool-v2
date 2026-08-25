@@ -125,7 +125,7 @@ The device features WiFi capability and can:
 - Create its own access point  
 - Connect to an existing network  
 
-If access to the web interface is lost, bridge the J3 jumper during power up or reset to restore access without deleting log files.
+If access to the web interface is lost, bridge the Jumper 3 (JP3) during power up or reset to restore access without deleting log files.
   
 ## Technical Background
 
@@ -282,7 +282,7 @@ Ground GPIO 4 or D2 during power up to restore the default configuration without
 #### Restore Default Settings  
     
 * Option 1: Go to settings under web interface and choose restore default configuration.  
-* Option 2: Close Jumper 3 (J3) before booting the device. (Either before powering on or bridge it and reset the device)   
+* Option 2: Close Jumper 3 (JP3) before booting the device. (Either before powering on or bridge it and reset the device)   
 * Option 3: Connect via serial(9600 baud) and send the command "ResetDefaultConfig:" without quotes.  
   
   
