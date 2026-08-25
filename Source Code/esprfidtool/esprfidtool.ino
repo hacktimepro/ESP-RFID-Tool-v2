@@ -547,6 +547,12 @@ void LogWiegand(WiegandNG &tempwg) {
         }
       }
       break;
+    case 56:
+    unknown = false;   // ganz wichtig!
+    // keine Chunk-Rekonstruktion nötig
+    // Binary-Ausgabe kommt aus newBitstream
+    break;
+
     default:  //unknown card
       unknown=true;
       //String binChunk3 is like cardChunk0
@@ -590,6 +596,12 @@ void LogWiegand(WiegandNG &tempwg) {
       f.print("<br>");
       goto END_BINARY_OUTPUT;
   }
+
+  if (countedBits == 56) {
+    f.print(newBitstream);
+    f.print("<br>");
+    goto END_BINARY_OUTPUT;
+}
 
   //f.print(" ");  //debug line
   if (binChunk2exists==true && unknown!=true) {
@@ -667,7 +679,7 @@ void LogWiegand(WiegandNG &tempwg) {
 
 END_BINARY_OUTPUT:
 
-  if (countedBits<=52 && unknown!=true) {
+  if ((countedBits<=52 || countedBits==56) && unknown!=true) {
     //f.print(",HEX:");
     //if (binChunk2exists==true) {
     //  f.print(cardChunk1, HEX);
@@ -1443,6 +1455,21 @@ Serial.println("========================");
         }
         newUIDFormat = "Wiegand 35 (UID32 Little-Endian)";
     }
+
+    else if (bits == 56) {
+        // 56-bit UID (7-byte UID, MSB-first)
+       // newBitstream enthält bereits alle 56 Bits korrekt
+
+        // 1. Binary → Hex
+       String uidHex = binaryToHex(newBitstream);   // 14 hex chars
+
+        // 2. MSB-first → NICHT drehen (DESFire/MIFARE UID sind MSB-first)
+       newUIDHex = uidHex;
+
+       // 3. Format setzen
+       newUIDFormat = "Wiegand 56 (UID56 MSB-first)";
+    }
+    
 else if (bits == 8) {
     // Key liegt im letzten Byte des Buffers
     unsigned int bufferSize = wg.getBufferSize();
@@ -1491,20 +1518,23 @@ else if (bits == 4) {
     }
 
 
-    // --- 3. Little-Endian konvertieren ---
-    uint32_t uid =
-        ((rawUID & 0x000000FF) << 24) |
-        ((rawUID & 0x0000FF00) << 8)  |
-        ((rawUID & 0x00FF0000) >> 8)  |
-        ((rawUID & 0xFF000000) >> 24);
+    // --- 3. Little-Endian nur für 32/34/35 ---
+    if (bits == 32 || bits == 34 || bits == 35) {
+       uint32_t uid =
+           ((rawUID & 0x000000FF) << 24) |
+            ((rawUID & 0x0000FF00) << 8)  |
+            ((rawUID & 0x00FF0000) >> 8)  |
+            ((rawUID & 0xFF000000) >> 24);
 
-    char buf[20];
-    sprintf(buf, "%08X", uid);
+       char buf[20];
+        sprintf(buf, "%08X", uid);
 
-    newUIDHex = String(buf);
+        newUIDHex = String(buf);
+    }
 
     Serial.print("RAW UID: ");
     Serial.println(newUIDHex);
+
 });
 
 
@@ -1718,6 +1748,7 @@ server.on("/wiegand", []() {
     "<option value='32'>Wiegand 32</option>"
     "<option value='34'>Wiegand 34</option>"
     "<option value='35'>Wiegand 35</option>"
+    "<option value='56'>Wiegand 56</option>"
     "</select><br><br>"
   ));
   // --- SEND BUTTON ---

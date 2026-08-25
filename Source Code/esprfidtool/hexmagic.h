@@ -240,3 +240,18 @@ String makeWiegand35(String uidHex) {
     // 7. Wiegand-35 zusammenbauen
     return String(p1) + facility + card + String(p2);
 }
+
+String makeWiegand56(String uidHex) {
+
+    // 1. UID muss 14 Hex-Zeichen haben (7 Byte)
+    // Falls kürzer → links mit 0 auffüllen
+    while (uidHex.length() < 14)
+        uidHex = "0" + uidHex;
+
+    // 2. UID ist MSB-first → NICHT byte-swappen
+    // Direkt in BIN konvertieren
+    String bin = hexToBin(uidHex);
+
+    // 3. Ergebnis sind exakt 56 Bits
+    return bin;
+}

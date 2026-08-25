@@ -1,2 +1,2 @@
-String version = "2.2.5";
-String APIversion = "1.2.1";
+String version = "2.2.6";
+String APIversion = "1.2.2";

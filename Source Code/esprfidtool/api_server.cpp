@@ -28,6 +28,7 @@ extern void apiTXinstant(String bin, int pulsewidth, int interval, int wait);
 extern String makeWiegand32(String uid);
 extern String makeWiegand34(String uid);
 extern String makeWiegand35(String uid);
+extern String makeWiegand56(String uid);
 
 // API helpers
 extern void apiinfo(int prettify);
@@ -176,6 +177,9 @@ server.on("/api/wiegandencode", []() {
     }
     else if (format == 35) {
         bin = makeWiegand35(uid);
+    }
+    else if (format == 56) {
+        bin = makeWiegand56(uid);
     }
     else {
         server.send(400, "text/plain", "Unsupported format");
