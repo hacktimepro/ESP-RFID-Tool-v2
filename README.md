@@ -282,7 +282,7 @@ Ground GPIO 4 or D2 during power up to restore the default configuration without
 #### Restore Default Settings  
     
 * Option 1: Go to settings under web interface and choose restore default configuration.  
-* Option 2: Ground GPIO 4 / D2 before booting the device. (Either before powering on or bridge it and reset the device)   
+* Option 2: Close Jumper 3 (J3) before booting the device. (Either before powering on or bridge it and reset the device)   
 * Option 3: Connect via serial(9600 baud) and send the command "ResetDefaultConfig:" without quotes.  
   
   
