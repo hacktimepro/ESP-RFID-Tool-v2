@@ -426,25 +426,35 @@ void LogWiegand(WiegandNG &tempwg) {
         }
       }
       break;
-    case 32:
-      for(int i = 19; i >= 0; i--) {
-        if(i == 13 || i == 8){
-          bitWrite(cardChunk1, i, 1);
+    case 32: {
+        // --- KORREKTE WIEGAND-32 DEKODIERUNG ---
+        // 1. UID-Bits aus binChunk1/binChunk2 extrahieren
+        String uidBits = "";
+
+        for (int i = 31; i >= 0; i--) {
+            if (i >= binChunk2len) {
+                uidBits += bitRead(binChunk1, i - binChunk2len) ? '1' : '0';
+            } else {
+                uidBits += bitRead(binChunk2, i) ? '1' : '0';
+            }
         }
-        else if(i > 8) {
-          bitWrite(cardChunk1, i, 0);
+
+        // 2. Binary → Hex (Little Endian)
+        String uidHexLE = binaryToHex(uidBits);
+
+        // 3. Little → Big Endian
+        String uidHexBE = reverseHex(uidHexLE);
+
+        // 4. cardChunk1/cardChunk2 für die Binary-Ausgabe befüllen
+        //    → wir splitten die 32 Bits in zwei 16-Bit Chunks
+        for (int i = 0; i < 16; i++) {
+            bitWrite(cardChunk1, i, uidBits[31 - i] == '1');
+            bitWrite(cardChunk2, i, uidBits[15 - i] == '1');
         }
-        else {
-          bitWrite(cardChunk1, i, bitRead(binChunk1, i + 14));
-        }
-        if(i < 14) {
-          bitWrite(cardChunk2, i + 10, bitRead(binChunk1, i));
-        }
-        if(i < 10) {
-          bitWrite(cardChunk2, i, bitRead(binChunk2, i));
-        }
-      }
-      break;
+
+        unknown = false;
+        break;
+    }
     case 33:
       for(int i = 19; i >= 0; i--) {
         if(i == 13 || i == 9){
@@ -573,6 +583,14 @@ void LogWiegand(WiegandNG &tempwg) {
   
   f.print(F("Binary:"));
 
+  // --- KORREKTE BINARY-AUSGABE FÜR WIEGAND-32 ---
+  if (countedBits == 32) {
+      // newBitstream kommt aus dem RAW-Callback und ist korrekt
+      f.print(newBitstream);
+      f.print("<br>");
+      goto END_BINARY_OUTPUT;
+  }
+
   //f.print(" ");  //debug line
   if (binChunk2exists==true && unknown!=true) {
     for(int i = (((countedBits+preambleLen)-countedBits)+(countedBits-24)); i--;) {
@@ -646,6 +664,8 @@ void LogWiegand(WiegandNG &tempwg) {
         magstripe+=binChunk3;
     }
   }
+
+END_BINARY_OUTPUT:
 
   if (countedBits<=52 && unknown!=true) {
     //f.print(",HEX:");
@@ -1376,12 +1396,20 @@ Serial.println("========================");
 
     // --- 1. Echte Bits = letzte N Bits im 40-Bit-Block ---
     // Buffer enthält 40 Bits → echte Bits = raw[40 - bits .. 39]
-    int start = 40 - bits;
+    //int start = 40 - bits;
+    //String realBits = "";
+    //for (int i = start; i < 40; i++) {
+    //    realBits += getBit(i) ? '1' : '0';
+    //}
+    //
+    //newBitstream = realBits;
     String realBits = "";
-    for (int i = start; i < 40; i++) {
-        realBits += getBit(i) ? '1' : '0';
+    // Bits direkt aus dem Buffer extrahieren (MSB-first)
+    for (unsigned int i = 0; i < bits; i++) {
+        unsigned int byteIndex = (bufferSize * 8 - bits + i) / 8;
+        unsigned int bitIndex  = 7 - ((bufferSize * 8 - bits + i) % 8);
+        realBits += (data[byteIndex] & (1 << bitIndex)) ? '1' : '0';
     }
-
     newBitstream = realBits;
 
     Serial.print("RAW BITSTREAM: ");
